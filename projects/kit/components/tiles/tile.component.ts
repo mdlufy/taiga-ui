@@ -6,13 +6,12 @@ import {
     HostListener,
     Inject,
     Input,
-    NgZone,
     OnDestroy,
 } from '@angular/core';
 import {MutationObserverService} from '@ng-web-apis/mutation-observer';
-import {tuiArrayShallowEquals, TuiResizeService, tuiZonefull} from '@taiga-ui/cdk';
+import {tuiArrayShallowEquals, TuiResizeService} from '@taiga-ui/cdk';
 import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
-import {debounceTime, distinctUntilChanged, map, startWith} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, startWith} from 'rxjs/operators';
 
 import {TuiTilesComponent} from './tiles.component';
 
@@ -31,25 +30,16 @@ export class TuiTileComponent implements OnDestroy {
     @HostBinding('class._dragged')
     dragged = false;
 
-    readonly offset$ = new BehaviorSubject<[number, number]>([0, 0]);
+    readonly offset$ = new BehaviorSubject<[number, number]>([NaN, NaN]);
 
     readonly position$ = combineLatest([
         this.offset$.pipe(distinctUntilChanged(tuiArrayShallowEquals)),
         this.resize$.pipe(startWith(null)),
         this.mutation$.pipe(startWith(null)),
         this.tiles.order$.pipe(debounceTime(0)),
-    ]).pipe(
-        map(([[left, top]]) => ({
-            top: top || this.element.offsetTop,
-            left: left || this.element.offsetLeft,
-            width: this.element.clientWidth,
-            height: this.element.clientHeight,
-        })),
-        tuiZonefull(this.ngZone),
-    );
+    ]);
 
     constructor(
-        @Inject(NgZone) private readonly ngZone: NgZone,
         @Inject(ElementRef) private readonly el: ElementRef<HTMLElement>,
         @Inject(TuiTilesComponent) private readonly tiles: TuiTilesComponent,
         @Inject(TuiResizeService) private readonly resize$: Observable<unknown>,
@@ -82,6 +72,17 @@ export class TuiTileComponent implements OnDestroy {
 
     onTransitionEnd(): void {
         this.dragged = false;
+    }
+
+    getRect([left, top]: [number, number]): ClientRect {
+        return {
+            top: Number.isNaN(top) ? this.element.offsetTop : top,
+            left: Number.isNaN(left) ? this.element.offsetLeft : left,
+            width: this.element.clientWidth,
+            height: this.element.clientHeight,
+            right: NaN,
+            bottom: NaN,
+        };
     }
 
     ngOnDestroy(): void {

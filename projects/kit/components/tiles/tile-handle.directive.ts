@@ -1,7 +1,12 @@
 import {Directive, HostListener, Inject} from '@angular/core';
 import {tuiGetActualTarget, tuiIsElement} from '@taiga-ui/cdk';
+import {shouldCall} from '@tinkoff/ng-event-plugins';
 
 import {TuiTileComponent} from './tile.component';
+
+function isInteracting(this: TuiTileHandleDirective, x = NaN): boolean {
+    return !Number.isNaN(x) || !Number.isNaN(this['x']);
+}
 
 @Directive({
     selector: '[tuiTileHandle]',
@@ -27,12 +32,14 @@ export class TuiTileHandleDirective {
         this.onPointer(x, y);
     }
 
+    @shouldCall(isInteracting)
     @HostListener('document:pointerup.silent')
     onPointer(x = NaN, y = NaN): void {
-        this.x = x - this.tile.element.offsetLeft;
-        this.y = y - this.tile.element.offsetTop;
+        const {left, top} = this.tile.element.getBoundingClientRect();
+        this.x = x - left;
+        this.y = y - top;
         this.tile.onDrag(!Number.isNaN(x));
-        this.tile.offset$.next([0, 0]);
+        this.tile.offset$.next([NaN, NaN]);
     }
 
     @HostListener('document:pointermove.silent', ['$event.x', '$event.y'])
