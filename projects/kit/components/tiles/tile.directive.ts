@@ -1,4 +1,4 @@
-import {Directive, ElementRef, Inject, Self} from '@angular/core';
+import {Directive, ElementRef, forwardRef, Inject, Self} from '@angular/core';
 import {TuiDestroyService, tuiPx} from '@taiga-ui/cdk';
 import {map, takeUntil, tap} from 'rxjs/operators';
 
@@ -11,7 +11,7 @@ import {TuiTileComponent} from './tile.component';
 export class TuiTileDirective {
     constructor(
         @Inject(ElementRef) {nativeElement}: ElementRef<HTMLElement>,
-        @Inject(TuiTileComponent) tile: TuiTileComponent,
+        @Inject(forwardRef(() => TuiTileComponent)) tile: TuiTileComponent,
         @Self() @Inject(TuiDestroyService) destroy$: TuiDestroyService,
     ) {
         const {style} = nativeElement;
