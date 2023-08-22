@@ -36,6 +36,7 @@ export class TuiTileHandleDirective {
     @HostListener('document:pointerup.silent')
     onPointer(x = NaN, y = NaN): void {
         const {left, top} = this.tile.element.getBoundingClientRect();
+
         this.x = x - left;
         this.y = y - top;
         this.tile.onDrag(!Number.isNaN(x));
